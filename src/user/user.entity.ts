@@ -22,7 +22,7 @@ export class UserEntity {
   @Column()
   role: string;
 
-  @Column()
+  @Column({ nullable: true })
   bossId: string;
 
   @OneToMany(() => CourseEntity, (course) => course.user)

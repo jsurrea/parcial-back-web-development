@@ -14,7 +14,7 @@ import { CreateBonusDto } from './bonus.dto';
 import { BonusEntity } from './bonus.entity';
 import { BonusService } from './bonus.service';
 
-@Controller('bonuss')
+@Controller('bonuses')
 @UseInterceptors(BusinessErrorsInterceptor)
 export class BonusController {
   constructor(private readonly bonusService: BonusService) {}
