@@ -27,7 +27,7 @@ export class StudentController {
 
   @Get(':studentId')
   async findOne(@Param('studentId') studentId: string) {
-    return await this.studentService.findOne(studentId);
+    return await this.studentService.findEstudianteById(studentId);
   }
 
   @Post()

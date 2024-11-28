@@ -27,7 +27,7 @@ export class ProfessorController {
 
   @Get(':professorId')
   async findOne(@Param('professorId') professorId: string) {
-    return await this.professorService.findOne(professorId);
+    return await this.professorService.findProfesorById(professorId);
   }
 
   @Post()
@@ -54,6 +54,6 @@ export class ProfessorController {
   @Delete(':professorId')
   @HttpCode(204)
   async delete(@Param('professorId') professorId: string) {
-    return await this.professorService.delete(professorId);
+    return await this.professorService.eliminarProfesor(professorId);
   }
 }

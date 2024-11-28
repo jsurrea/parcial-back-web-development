@@ -1,5 +1,11 @@
 import { ProjectEntity } from 'src/project/project.entity';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class StudentEntity {
@@ -16,5 +22,6 @@ export class StudentEntity {
   credits: number;
 
   @OneToOne(() => ProjectEntity, (project) => project.student)
+  @JoinColumn()
   project: ProjectEntity;
 }

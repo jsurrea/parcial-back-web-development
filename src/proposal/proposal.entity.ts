@@ -3,6 +3,7 @@ import { ProjectEntity } from 'src/project/project.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -26,5 +27,6 @@ export class ProposalEntity {
   professor: ProfessorEntity;
 
   @OneToOne(() => ProjectEntity, (project) => project.proposal)
+  @JoinColumn()
   project: ProjectEntity;
 }

@@ -18,7 +18,7 @@ export class ProfessorService {
     return await this.professorRepository.find({ relations: ['proposals'] });
   }
 
-  async findOne(id: string): Promise<ProfessorEntity> {
+  async findProfesorById(id: string): Promise<ProfessorEntity> {
     const professor: ProfessorEntity = await this.professorRepository.findOne({
       where: { id },
       relations: ['proposals'],
@@ -33,6 +33,12 @@ export class ProfessorService {
   }
 
   async create(professor: ProfessorEntity): Promise<ProfessorEntity> {
+    const availableResearchGroups = ['TICSW', 'IMAGINE', 'COMIT'];
+    if (!availableResearchGroups.includes(professor.researchGroup))
+      throw new BusinessLogicException(
+        'The research group is not valid',
+        BusinessError.INVALID_DATA,
+      );
     return await this.professorRepository.save(professor);
   }
 
@@ -56,7 +62,7 @@ export class ProfessorService {
     });
   }
 
-  async delete(id: string) {
+  async eliminarProfesor(id: string) {
     const professor: ProfessorEntity = await this.professorRepository.findOne({
       where: { id },
     });
@@ -65,6 +71,33 @@ export class ProfessorService {
         'The professor with the given id was not found',
         BusinessError.NOT_FOUND,
       );
+
+    if (professor.proposals.some((proposal) => proposal.project)) {
+      throw new BusinessLogicException(
+        'The professor has proposals with assigned projects',
+        BusinessError.INVALID_DATA,
+      );
+    }
+
+    await this.professorRepository.remove(professor);
+  }
+
+  async eliminarProfesorByCedula(cedula: number) {
+    const professor: ProfessorEntity = await this.professorRepository.findOne({
+      where: { governmentId: cedula },
+    });
+    if (!professor)
+      throw new BusinessLogicException(
+        'The professor with the given id was not found',
+        BusinessError.NOT_FOUND,
+      );
+
+    if (professor.proposals.some((proposal) => proposal.project)) {
+      throw new BusinessLogicException(
+        'The professor has proposals with assigned projects',
+        BusinessError.INVALID_DATA,
+      );
+    }
 
     await this.professorRepository.remove(professor);
   }

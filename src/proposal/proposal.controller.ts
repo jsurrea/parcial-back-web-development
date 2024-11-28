@@ -22,12 +22,12 @@ export class ProposalController {
 
   @Get()
   async findAll() {
-    return await this.proposalService.findAll();
+    return await this.proposalService.findAllPropuesta();
   }
 
   @Get(':proposalId')
   async findOne(@Param('proposalId') proposalId: string) {
-    return await this.proposalService.findOne(proposalId);
+    return await this.proposalService.findPropuestaById(proposalId);
   }
 
   @Post()
@@ -51,6 +51,6 @@ export class ProposalController {
   @Delete(':proposalId')
   @HttpCode(204)
   async delete(@Param('proposalId') proposalId: string) {
-    return await this.proposalService.delete(proposalId);
+    return await this.proposalService.deletePropuesta(proposalId);
   }
 }

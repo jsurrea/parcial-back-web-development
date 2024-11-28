@@ -18,7 +18,7 @@ export class StudentService {
     return await this.studentRepository.find({ relations: ['project'] });
   }
 
-  async findOne(id: string): Promise<StudentEntity> {
+  async findEstudianteById(id: string): Promise<StudentEntity> {
     const student: StudentEntity = await this.studentRepository.findOne({
       where: { id },
       relations: ['project'],
@@ -33,6 +33,12 @@ export class StudentService {
   }
 
   async create(student: StudentEntity): Promise<StudentEntity> {
+    if (student.code.length !== 10) {
+      throw new BusinessLogicException(
+        'The student code must have 10 characters',
+        BusinessError.INVALID_DATA,
+      );
+    }
     return await this.studentRepository.save(student);
   }
 

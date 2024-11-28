@@ -35,6 +35,12 @@ export class ProjectService {
   }
 
   async create(project: ProjectEntity): Promise<ProjectEntity> {
+    if (project.startDate > project.endDate) {
+      throw new BusinessLogicException(
+        'The start date must be before the end date',
+        BusinessError.INVALID_DATA,
+      );
+    }
     return await this.projectRepository.save(project);
   }
 
