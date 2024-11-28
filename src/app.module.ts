@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
-import { StudentModule } from './student/student.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProjectModule } from './project/project.module';
-import { ProposalModule } from './proposal/proposal.module';
-import { ProfessorModule } from './professor/professor.module';
+import { BonusModule } from './bonus/bonus.module';
+import { CourseModule } from './course/course.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    StudentModule,
-    ProjectModule,
-    ProposalModule,
-    ProfessorModule,
+    BonusModule,
+    CourseModule,
+    UserModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -18,7 +16,7 @@ import { ProfessorModule } from './professor/professor.module';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [StudentModule, ProjectModule, ProposalModule, ProfessorModule],
+      entities: [BonusModule, CourseModule, UserModule],
       dropSchema: true,
       synchronize: true,
       keepConnectionAlive: true,
