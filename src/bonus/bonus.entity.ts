@@ -10,7 +10,7 @@ export class BonusEntity {
   @Column({ type: 'int' })
   amount: number;
 
-  @Column({ type: 'double' })
+  @Column({ type: 'double precision' })
   rating: number;
 
   @Column()
