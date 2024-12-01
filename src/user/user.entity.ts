@@ -1,5 +1,5 @@
-import { BonusEntity } from 'src/bonus/bonus.entity';
-import { CourseEntity } from 'src/course/course.entity';
+import { BonusEntity } from '../bonus/bonus.entity';
+import { CourseEntity } from '../course/course.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BonusEntity } from './bonus.entity';
-import { CourseEntity } from 'src/course/course.entity';
-import { UserEntity } from 'src/user/user.entity';
+import { CourseEntity } from '../course/course.entity';
+import { UserEntity } from '../user/user.entity';
 import {
   BusinessError,
   BusinessLogicException,

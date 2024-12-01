@@ -1,144 +1,200 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from './user.service';
-import { Repository } from 'typeorm';
-import { UserEntity } from './user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import {
-  BusinessError,
-  BusinessLogicException,
-} from '../shared/errors/business-errors';
+import { Repository } from 'typeorm';
+import { TypeOrmTestingConfig } from '../shared/testing-utils/typeorm-testing-config';
+import { UserEntity } from './user.entity';
+import { BonusEntity } from '../bonus/bonus.entity';
+import { UserService } from './user.service';
 
-describe('UserService', () => {
+import { faker } from '@faker-js/faker';
+
+describe(UserService, () => {
   let service: UserService;
-
-  const mockUserRepository = {
-    findOne: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
-  };
+  let repository: Repository<UserEntity>;
+  let usersList: UserEntity[];
+  let bonusesList: BonusEntity[];
+  let bonusRepository: Repository<BonusEntity>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserService,
-        {
-          provide: getRepositoryToken(UserEntity),
-          useValue: mockUserRepository,
-        },
-      ],
+      imports: [...TypeOrmTestingConfig()],
+      providers: [UserService],
     }).compile();
 
     service = module.get<UserService>(UserService);
+    repository = module.get<Repository<UserEntity>>(
+      getRepositoryToken(UserEntity),
+    );
+    bonusRepository = module.get<Repository<BonusEntity>>(
+      getRepositoryToken(BonusEntity),
+    );
+    await seedDatabase();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const seedDatabase = async () => {
+    repository.clear();
+    bonusRepository.clear();
 
-  describe('findUsuarioById', () => {
-    it('should return a user when the user is found', async () => {
-      const user = { id: '1', employees: [], courses: [], bonuses: [] };
-      mockUserRepository.findOne.mockResolvedValue(user);
-
-      const result = await service.findUsuarioById('1');
-      expect(result).toEqual(user);
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
-        relations: ['employees', 'courses', 'bonuses'],
+    bonusesList = [];
+    for (let i = 0; i < 5; i++) {
+      const bonus: BonusEntity = await bonusRepository.save({
+        amount: faker.number.int(),
+        rating: faker.number.float({ min: 0, max: 5, fractionDigits: 2 }),
+        keyword: faker.lorem.word(),
       });
-    });
+      bonusesList.push(bonus);
+    }
 
-    it('should throw an exception when the user is not found', async () => {
-      mockUserRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.findUsuarioById('1')).rejects.toThrow(
-        new BusinessLogicException(
-          'The user with the given id was not found',
-          BusinessError.NOT_FOUND,
-        ),
-      );
-    });
-  });
-
-  describe('crearUsuario', () => {
-    it('should create a user successfully', async () => {
-      const user = { role: 'professor', researchGroup: 'TICSW' };
-      mockUserRepository.save.mockResolvedValue(user);
-
-      const result = await service.crearUsuario(user as UserEntity);
-      expect(result).toEqual(user);
-      expect(mockUserRepository.save).toHaveBeenCalledWith(user);
-    });
-
-    it('should throw an exception for an invalid research group', async () => {
-      const user = { role: 'professor', researchGroup: 'INVALID_GROUP' };
-
-      await expect(service.crearUsuario(user as UserEntity)).rejects.toThrow(
-        new BusinessLogicException(
-          'The research group is not valid for the professor',
-          BusinessError.INVALID_DATA,
-        ),
-      );
-    });
-
-    it('should throw an exception for an invalid dean telephone extension', async () => {
-      const user = { role: 'dean', telephoneExtension: '123' };
-
-      await expect(service.crearUsuario(user as UserEntity)).rejects.toThrow(
-        new BusinessLogicException(
-          'The telephone extension for deans should have 8 digits',
-          BusinessError.INVALID_DATA,
-        ),
-      );
-    });
-  });
-
-  describe('eliminarUsuario', () => {
-    it('should delete a user successfully', async () => {
-      const user = { id: '1', role: 'professor', bonuses: [] };
-      mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.remove.mockResolvedValue(undefined);
-
-      await service.eliminarUsuario('1');
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
+    usersList = [];
+    for (let i = 0; i < 5; i++) {
+      const user: UserEntity = await repository.save({
+        governmentId: faker.number.int(),
+        name: faker.person.fullName(),
+        researchGroup: faker.helpers.arrayElement([
+          'TICSW',
+          'IMAGINE',
+          'COMIT',
+        ]),
+        telephoneExtension: faker.number.int({ min: 10000000, max: 99999999 }),
+        role: faker.helpers.arrayElement(['professor', 'dean']),
+        bonuses: bonusesList,
       });
-      expect(mockUserRepository.remove).toHaveBeenCalledWith(user);
+      usersList.push(user);
+    }
+  };
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('findUsuarioById should return a user by id', async () => {
+    const storedUser: UserEntity = usersList[0];
+    const user: UserEntity = await service.findUsuarioById(storedUser.id);
+    expect(user).not.toBeNull();
+    expect(user.governmentId).toEqual(storedUser.governmentId);
+    expect(user.name).toEqual(storedUser.name);
+    expect(user.researchGroup).toEqual(storedUser.researchGroup);
+    expect(user.telephoneExtension).toEqual(storedUser.telephoneExtension);
+    expect(user.role).toEqual(storedUser.role);
+  });
+
+  it('findUsuarioById should throw an exception for an invalid user', async () => {
+    await expect(() =>
+      service.findUsuarioById('0000-0000-0000-0000'),
+    ).rejects.toHaveProperty(
+      'message',
+      'The user with the given id was not found',
+    );
+  });
+
+  it('crearUsuario should return a new user', async () => {
+    const user: UserEntity = {
+      id: '',
+      governmentId: faker.number.int(),
+      name: faker.person.fullName(),
+      researchGroup: faker.helpers.arrayElement(['TICSW', 'IMAGINE', 'COMIT']),
+      telephoneExtension: faker.number.int({ min: 10000000, max: 99999999 }),
+      role: faker.helpers.arrayElement(['professor', 'dean']),
+      bossId: '',
+      bonuses: [],
+      courses: [],
+    };
+
+    const newUser: UserEntity = await service.crearUsuario(user);
+    expect(newUser).not.toBeNull();
+
+    const storedUser: UserEntity = await repository.findOne({
+      where: { id: newUser.id },
     });
+    expect(storedUser).not.toBeNull();
+    expect(storedUser.governmentId).toEqual(user.governmentId);
+    expect(storedUser.name).toEqual(user.name);
+    expect(storedUser.researchGroup).toEqual(user.researchGroup);
+    expect(storedUser.telephoneExtension).toEqual(user.telephoneExtension);
+    expect(storedUser.role).toEqual(user.role);
+  });
 
-    it('should throw an exception when the user is not found', async () => {
-      mockUserRepository.findOne.mockResolvedValue(null);
+  it('crearUsuario should throw an exception for an invalid professor', async () => {
+    const user: UserEntity = {
+      id: '',
+      governmentId: faker.number.int(),
+      name: faker.person.fullName(),
+      researchGroup: 'INVALID',
+      telephoneExtension: faker.number.int({ min: 10000000, max: 99999999 }),
+      role: 'professor',
+      bossId: '',
+      bonuses: [],
+      courses: [],
+    };
 
-      await expect(service.eliminarUsuario('1')).rejects.toThrow(
-        new BusinessLogicException(
-          'The user with the given id was not found',
-          BusinessError.NOT_FOUND,
-        ),
-      );
+    await expect(() => service.crearUsuario(user)).rejects.toHaveProperty(
+      'message',
+      'The research group is not valid for the professor',
+    );
+  });
+
+  it('crearUsuario should throw an exception for an invalid dean', async () => {
+    const user: UserEntity = {
+      id: '',
+      governmentId: faker.number.int(),
+      name: faker.person.fullName(),
+      researchGroup: faker.helpers.arrayElement(['TICSW', 'IMAGINE', 'COMIT']),
+      telephoneExtension: faker.number.int({ min: 1000000, max: 9999999 }),
+      role: 'dean',
+      bossId: '',
+      bonuses: [],
+      courses: [],
+    };
+
+    await expect(() => service.crearUsuario(user)).rejects.toHaveProperty(
+      'message',
+      'The telephone extension for deans should have 8 digits',
+    );
+  });
+
+  it('eliminarUsuario should remove a user', async () => {
+    const user: UserEntity = usersList[0];
+    user.bonuses = [];
+    user.role = 'professor';
+    await repository.save(user);
+    await service.eliminarUsuario(user.id);
+
+    const deletedUser: UserEntity = await repository.findOne({
+      where: { id: user.id },
     });
+    expect(deletedUser).toBeNull();
+  });
 
-    it('should throw an exception if the user is a dean', async () => {
-      const user = { id: '1', role: 'dean', bonuses: [] };
-      mockUserRepository.findOne.mockResolvedValue(user);
+  it('eliminarUsuario should throw an exception for an invalid user', async () => {
+    await expect(() =>
+      service.eliminarUsuario('0000-0000-0000-0000'),
+    ).rejects.toHaveProperty(
+      'message',
+      'The user with the given id was not found',
+    );
+  });
 
-      await expect(service.eliminarUsuario('1')).rejects.toThrow(
-        new BusinessLogicException(
-          'The user is a dean',
-          BusinessError.PRECONDITION_FAILED,
-        ),
-      );
-    });
+  it('eliminarUsuario should throw an exception for a dean', async () => {
+    const user: UserEntity = usersList[0];
+    user.role = 'dean';
+    user.bonuses = [];
+    await repository.save(user);
+    await repository.save(user);
 
-    it('should throw an exception if the user has bonuses', async () => {
-      const user = { id: '1', role: 'professor', bonuses: [{}] };
-      mockUserRepository.findOne.mockResolvedValue(user);
+    await expect(() => service.eliminarUsuario(user.id)).rejects.toHaveProperty(
+      'message',
+      'The user is a dean',
+    );
+  });
 
-      await expect(service.eliminarUsuario('1')).rejects.toThrow(
-        new BusinessLogicException(
-          'The user has associated bonuses',
-          BusinessError.PRECONDITION_FAILED,
-        ),
-      );
-    });
+  it('eliminarUsuario should throw an exception for a user with bonuses', async () => {
+    const user: UserEntity = usersList[0];
+    user.role = 'professor';
+    await repository.save(user);
+
+    await expect(() => service.eliminarUsuario(user.id)).rejects.toHaveProperty(
+      'message',
+      'The user has associated bonuses',
+    );
   });
 });

@@ -1,5 +1,5 @@
-import { BonusEntity } from 'src/bonus/bonus.entity';
-import { UserEntity } from 'src/user/user.entity';
+import { BonusEntity } from '../bonus/bonus.entity';
+import { UserEntity } from '../user/user.entity';
 import {
   Column,
   Entity,

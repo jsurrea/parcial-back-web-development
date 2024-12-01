@@ -3,10 +3,10 @@ import { BonusService } from './bonus.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BonusEntity } from './bonus.entity';
 import { BonusController } from './bonus.controller';
-import { CourseService } from 'src/course/course.service';
-import { UserService } from 'src/user/user.service';
-import { CourseEntity } from 'src/course/course.entity';
-import { UserEntity } from 'src/user/user.entity';
+import { CourseService } from '../course/course.service';
+import { UserService } from '../user/user.service';
+import { CourseEntity } from '../course/course.entity';
+import { UserEntity } from '../user/user.entity';
 
 @Module({
   providers: [BonusService, CourseService, UserService],
