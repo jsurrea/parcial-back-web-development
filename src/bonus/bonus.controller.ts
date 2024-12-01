@@ -19,20 +19,23 @@ import { BonusService } from './bonus.service';
 export class BonusController {
   constructor(private readonly bonusService: BonusService) {}
 
-  @Get(':userId')
+  @Get('user/:userId')
   async findAllBonosByUsuario(@Param('userId') userId: string) {
     return await this.bonusService.findAllBonosByUsuario(userId);
   }
 
-  @Get(':cod')
+  @Get('code/:cod')
   async findBonosByCodigo(@Param('cod') cod: string) {
     return await this.bonusService.findBonosByCodigo(cod);
   }
 
-  @Post()
-  async crearBono(@Body() createBonusDto: CreateBonusDto) {
+  @Post(':userId')
+  async crearBono(
+    @Param('userId') userId: string,
+    @Body() createBonusDto: CreateBonusDto,
+  ) {
     const bonusEntity = plainToInstance(BonusEntity, createBonusDto);
-    return await this.bonusService.crearBono(bonusEntity);
+    return await this.bonusService.crearBono(bonusEntity, userId);
   }
 
   @Delete(':bonusId')

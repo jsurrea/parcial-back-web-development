@@ -48,7 +48,18 @@ export class BonusService {
     return course.bonuses;
   }
 
-  async crearBono(bonus: BonusEntity): Promise<BonusEntity> {
+  async crearBono(bonus: BonusEntity, userId: string): Promise<BonusEntity> {
+    const user: UserEntity = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['bonuses'],
+    });
+    if (!user)
+      throw new BusinessLogicException(
+        'The user with the given id was not found',
+        BusinessError.NOT_FOUND,
+      );
+    bonus.user = user;
+
     if (bonus.amount <= 0) {
       throw new BusinessLogicException(
         'The bonus amount must be positive',
@@ -56,7 +67,7 @@ export class BonusService {
       );
     }
 
-    if (bonus.user.role !== 'professor') {
+    if (user.role !== 'professor') {
       throw new BusinessLogicException(
         'The user associated with the bonus must be a professor',
         BusinessError.INVALID_DATA,

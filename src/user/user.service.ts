@@ -17,7 +17,7 @@ export class UserService {
   async findUsuarioById(id: string): Promise<UserEntity> {
     const user: UserEntity = await this.userRepository.findOne({
       where: { id },
-      relations: ['boss', 'employees', 'courses', 'bonuses'],
+      relations: ['courses', 'bonuses'],
     });
     if (!user)
       throw new BusinessLogicException(
@@ -49,6 +49,7 @@ export class UserService {
   async eliminarUsuario(id: string) {
     const user: UserEntity = await this.userRepository.findOne({
       where: { id },
+      relations: ['bonuses'],
     });
     if (!user)
       throw new BusinessLogicException(
